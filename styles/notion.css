@@ -67,9 +67,13 @@
   --notion-header-height: 45px;
 }
 
+/* 修复行间距问题 */
+.notion, .notion-text, .notion-quote, .notion-h-title, .notion-page, .notion-page-text, .notion-block {
+  line-height: 1.8rem !important;
+}
+
 .notion {
   font-size: 16px;
-  line-height: 1.5 !important;
   color: var(--fg-color);
   caret-color: var(--fg-color);
   font-family: inherit;
@@ -459,7 +463,6 @@
 }
 
 .notion-page {
-  line-height: 1.5;
   position: relative;
   padding: 0;
   margin: 0 auto;
@@ -624,7 +627,6 @@ svg.notion-page-icon {
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500;
-  line-height: 1.5;
   border-bottom: 1px solid var(--fg-color-1);
   margin: 4px 0;
 }
@@ -724,7 +726,6 @@ svg.notion-page-icon {
 }
 
 .notion-block {
-  line-height: 1.5;
   padding: 5px 2px;
 }
 
