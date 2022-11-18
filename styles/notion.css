@@ -384,7 +384,7 @@
 
 /* 为着重文字增加字重，并将颜色改为橙红色 */
 .notion b {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--notion-orange);
 }
 
