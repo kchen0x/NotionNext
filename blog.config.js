@@ -27,9 +27,9 @@ const BLOG = {
 
   // 自定义字体示例： 请先将 CUSTOM_FONT 改为 true， 并将 CUSTOM_FONT_URL 改为你的字体CSS地址，同时在 CUSTOM_FONT_SANS 与 CUSTOM_FONT_SERIF 中指定你的 fontfamily
   CUSTOM_FONT: true, // 是否使用自定义字体
-  CUSTOM_FONT_URL: ['https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.6.0/style.min.css','https://cdn.jsdelivr.net/npm/noto-npm-webfont@1.0.1/style.min.css'], // 自定义字体的CSS
-  CUSTOM_FONT_SANS: ['LXGW Wenkai'], // 自定义无衬线字体
-  CUSTOM_FONT_SERIF: ['LXGW WenKai'], // 自定义衬线字体
+  CUSTOM_FONT_URL: ['https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.6.0/lxgwwenkaiscreen.css'], // 自定义字体的CSS
+  CUSTOM_FONT_SANS: ['LXGW WenKai Screen'], // 自定义无衬线字体
+  CUSTOM_FONT_SERIF: ['LXGW WenKai Screen'], // 自定义衬线字体
 
   // 图标库CDN(可以直接改版本号）
   FONT_AWESOME_PATH: 'https://cdn.bootcdn.net/ajax/libs/font-awesome/6.2.0/css/all.min.css',
@@ -52,10 +52,10 @@ const BLOG = {
   PREVIEW_TAG_COUNT: 16, // 首页最多展示的标签数量，0为不限制
 
   // 社交链接，不需要可留空白，例如 CONTACT_WEIBO:''
-  CONTACT_EMAIL: 'kchen2991@gmail.com',
+  CONTACT_EMAIL: 'mail@tangly1024.com',
   CONTACT_WEIBO: '',
   CONTACT_TWITTER: '',
-  CONTACT_GITHUB: 'https://github.com/kchen0x',
+  CONTACT_GITHUB: 'https://github.com/tangly1024',
   CONTACT_TELEGRAM: '',
 
   // 鼠标点击烟花特效
@@ -120,7 +120,6 @@ const BLOG = {
   COMMENT_VALINE_SERVER_URLS: process.env.NEXT_PUBLIC_VALINE_SERVER_URLS || '', // 该配置适用于国内自定义域名用户, 海外版本会自动检测(无需手动填写) @see https://valine.js.org/configuration.html#serverURLs
   COMMENT_VALINE_PLACEHOLDER: process.env.NEXT_PUBLIC_VALINE_PLACEHOLDER || '抢个沙发吧~', // 可以搭配后台管理评论 https://github.com/DesertsP/Valine-Admin  便于查看评论，以及邮件通知，垃圾评论过滤等功能
 
-  // waline
   COMMENT_WALINE_SERVER_URL: process.env.NEXT_PUBLIC_WALINE_SERVER_URL || '', // Waline 评论 @see https://waline.js.org/guide/get-started.html
   COMMENT_WALINE_RECENT: process.env.NEXT_PUBLIC_WALINE_RECENT || false, // 最新评论
 
