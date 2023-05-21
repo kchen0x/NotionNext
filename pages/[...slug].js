@@ -8,6 +8,8 @@ import { idToUuid } from 'notion-utils'
 import Router from 'next/router'
 import { isBrowser } from '@/lib/utils'
 import { getNotion } from '@/lib/notion/getNotion'
+import { getPageTableOfContents } from '@/lib/notion/getPageTableOfContents'
+import md5 from 'js-md5'
 
 /**
  * 根据notion的slug访问页面
@@ -20,8 +22,24 @@ const Slug = props => {
   const { post, siteInfo } = props
   const router = Router.useRouter()
 
+  // 文章锁🔐
+  const [lock, setLock] = React.useState(post?.password && post?.password !== '')
+
+  React.useEffect(() => {
+    changeLoadingState(false)
+    if (post?.password && post?.password !== '') {
+      setLock(true)
+    } else {
+      if (!lock && post?.blockMap?.block) {
+        post.content = Object.keys(post.blockMap.block).filter(key => post.blockMap.block[key]?.value?.parent_id === post.id)
+        post.toc = getPageTableOfContents(post, post.blockMap)
+      }
+
+      setLock(false)
+    }
+  }, [post])
+
   if (!post) {
-    changeLoadingState(true)
     setTimeout(() => {
       if (isBrowser()) {
         const article = document.getElementById('container')
@@ -31,31 +49,23 @@ const Slug = props => {
           })
         }
       }
-    }, 20 * 1000)
-    const meta = { title: `${props?.siteInfo?.title || BLOG.TITLE} | loading`, image: siteInfo?.pageCover }
+    }, 8 * 1000) // 404时长 8秒
+    const meta = { title: `${props?.siteInfo?.title || BLOG.TITLE} | loading`, image: siteInfo?.pageCover || BLOG.HOME_BANNER_IMAGE }
     return <ThemeComponents.LayoutSlug {...props} showArticleInfo={true} meta={meta} />
   }
-
-  changeLoadingState(false)
-
-  // 文章锁🔐
-  const [lock, setLock] = React.useState(post?.password && post?.password !== '')
-  React.useEffect(() => {
-    if (post?.password && post?.password !== '') {
-      setLock(true)
-    } else {
-      setLock(false)
-    }
-  }, [post])
 
   /**
    * 验证文章密码
    * @param {*} result
    */
-  const validPassword = result => {
-    if (result) {
+  const validPassword = passInput => {
+    const encrypt = md5(post.slug + passInput)
+
+    if (passInput && encrypt === post.password) {
       setLock(false)
+      return true
     }
+    return false
   }
 
   props = { ...props, lock, setLock, validPassword }
@@ -90,48 +100,61 @@ export async function getStaticPaths() {
   const from = 'slug-paths'
   const { allPages } = await getGlobalNotionData({ from })
   return {
-    paths: allPages.map(row => ({ params: { slug: [row.slug] } })),
+    paths: allPages?.map(row => ({ params: { slug: [row.slug] } })),
     fallback: true
   }
 }
 
 export async function getStaticProps({ params: { slug } }) {
-  // slug 是个数组
-  const fullSlug = slug.join('/')
+  let fullSlug = slug.join('/')
+  if (BLOG.PSEUDO_STATIC) {
+    if (!fullSlug.endsWith('.html')) {
+      fullSlug += '.html'
+    }
+  }
   const from = `slug-props-${fullSlug}`
   const props = await getGlobalNotionData({ from })
+  // 在列表内查找文章
   props.post = props.allPages.find((p) => {
     return p.slug === fullSlug || p.id === idToUuid(fullSlug)
   })
 
-  if (!props.post) {
+  // 处理非列表内文章的内信息
+  if (!props?.post) {
     const pageId = slug.slice(-1)[0]
-    if (pageId.length < 32) {
-      return { props, revalidate: 1 }
-    }
-    const post = await getNotion(pageId)
-    if (post) {
+    if (pageId.length >= 32) {
+      const post = await getNotion(pageId)
       props.post = post
-    } else {
-      return { props, revalidate: 1 }
     }
-  } else {
-    props.post.blockMap = await getPostBlocks(props.post.id, 'slug')
   }
 
+  // 无法获取文章
+  if (!props?.post) {
+    return { props, revalidate: parseInt(BLOG.NEXT_REVALIDATE_SECOND) }
+  }
+
+  // 文章内容加载
+  if (!props?.posts?.blockMap) {
+    props.post.blockMap = await getPostBlocks(props.post.id, from)
+  }
+
+  // 推荐关联文章处理
   const allPosts = props.allPages.filter(page => page.type === 'Post' && page.status === 'Published')
-  const index = allPosts.indexOf(props.post)
-  props.prev = allPosts.slice(index - 1, index)[0] ?? allPosts.slice(-1)[0]
-  props.next = allPosts.slice(index + 1, index + 2)[0] ?? allPosts[0]
-  props.recommendPosts = getRecommendPost(
-    props.post,
-    allPosts,
-    BLOG.POST_RECOMMEND_COUNT
-  )
+  if (allPosts && allPosts.length > 0) {
+    const index = allPosts.indexOf(props.post)
+    props.prev = allPosts.slice(index - 1, index)[0] ?? allPosts.slice(-1)[0]
+    props.next = allPosts.slice(index + 1, index + 2)[0] ?? allPosts[0]
+    props.recommendPosts = getRecommendPost(props.post, allPosts, BLOG.POST_RECOMMEND_COUNT)
+  } else {
+    props.prev = null
+    props.next = null
+    props.recommendPosts = []
+  }
+
   delete props.allPages
   return {
     props,
-    revalidate: 1
+    revalidate: parseInt(BLOG.NEXT_REVALIDATE_SECOND)
   }
 }
 
